@@ -55,7 +55,7 @@ jobs:
     # On push to "main", build or change infrastructure according to Terraform configuration files
     # Apply only if changes are detected
     - name: Terraform Apply
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.check_plan.outcome == 'success'
+      if: github.ref == 'refs/heads/feature/athena' && github.event_name == 'push' && steps.check_plan.outcome == 'success'
       run: terraform apply -auto-approve -input=false tfplan
 
     # Set up kubectl to interact with the AKS cluster
