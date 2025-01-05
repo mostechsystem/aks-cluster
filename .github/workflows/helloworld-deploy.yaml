@@ -1,0 +1,35 @@
+name: Deploy to AKS
+
+on:
+  push:
+    branches: ["feature/athena"]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository from the specific branch
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: feature/athena
+
+      # Log in to Azure
+      - name: Azure Login
+        uses: azure/login@v1.4.6
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Set up kubectl to interact with the AKS cluster
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v1
+        with:
+          kubeconfig: ${{ secrets.AKS_KUBECONFIG }}
+
+      # Deploy the Helloworld Pods and Service
+      - name: Deploy Helloworld Pods and Service
+        run: |
+          kubectl apply -f app/helloworld.yaml
