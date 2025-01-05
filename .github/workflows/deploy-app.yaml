@@ -5,10 +5,6 @@ on:
     branches: ["feature/athena"]
   workflow_dispatch:
 
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -32,6 +28,13 @@ jobs:
         uses: azure/setup-kubectl@v1
         with:
           kubeconfig: ${{ secrets.AKS_KUBECONFIG }}
+
+      # Set Kubernetes context to the AKS cluster
+      - name: Set Kubernetes Context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: ${{ secrets.AZURE_RESOURCE_GROUP }}
+          cluster-name: ${{ secrets.AZURE_CLUSTER_NAME }}
 
       # Deploy the Helloworld Pods and Service
       - name: Deploy Helloworld Pods and Service
