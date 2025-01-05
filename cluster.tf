@@ -5,8 +5,8 @@ resource "random_pet" "prefix" {}
 
 provider "azurerm" {
   features {}
-  client_id       = var.appId
-  client_secret   = var.password
+  appId       = var.appId
+  password   = var.password
   subscription_id = var.subscription_id
   tenant_id       = var.tenant_id
 }
@@ -35,8 +35,8 @@ resource "azurerm_kubernetes_cluster" "default" {
   }
 
   service_principal {
-    client_id     = var.appId
-    client_secret = var.password
+    appId     = var.appId
+    password = var.password
   }
 
   role_based_access_control_enabled = true
