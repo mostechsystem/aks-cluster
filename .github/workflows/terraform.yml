@@ -14,7 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: test
 
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
         shell: bash
@@ -30,6 +29,26 @@ jobs:
       with:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
+    # Check if resource group and cluster exist
+    - name: Check Existing Resources
+      id: check_resources
+      run: |
+        set -e
+        # Check for resource group
+        az group show --name athena-aks-cluster-rg --subscription fb30b7d9-ce3c-4a8e-b04e-340796eeec0d > /dev/null 2>&1
+        RESOURCE_GROUP_EXISTS=$?
+        
+        # Check for AKS cluster
+        az aks show --resource-group athena-aks-cluster-rg --name athena-aks-cluster-test --subscription fb30b7d9-ce3c-4a8e-b04e-340796eeec0d > /dev/null 2>&1
+        CLUSTER_EXISTS=$?
+
+        # Output results
+        if [ $RESOURCE_GROUP_EXISTS -eq 0 ] && [ $CLUSTER_EXISTS -eq 0 ]; then
+          echo "resources_exist=true" >> $GITHUB_ENV
+        else
+          echo "resources_exist=false" >> $GITHUB_ENV
+        fi
+
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       run: terraform init
@@ -42,6 +61,7 @@ jobs:
     - name: Terraform Plan
       id: plan
       run: terraform plan -input=false -out=tfplan
+      if: env.resources_exist == 'false'
 
     # Output the plan result to determine if apply should be executed
     - name: Check Plan Result
@@ -51,11 +71,11 @@ jobs:
           echo "No changes to apply"
           exit 0
         fi
+      if: env.resources_exist == 'false'
 
-    # On push to "main", build or change infrastructure according to Terraform configuration files
-    # Apply only if changes are detected
+    # Apply only if resources do not already exist and changes are detected
     - name: Terraform Apply
-      if: github.ref == 'refs/heads/feature/athena' && github.event_name == 'push' && steps.check_plan.outcome == 'success'
+      if: env.resources_exist == 'false' && github.ref == 'refs/heads/feature/athena' && github.event_name == 'push' && steps.check_plan.outcome == 'success'
       run: terraform apply -auto-approve -input=false tfplan
 
     # Set up kubectl to interact with the AKS cluster
