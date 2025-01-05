@@ -57,14 +57,3 @@ jobs:
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.check_plan.outcome == 'success'
       run: terraform apply -auto-approve -input=false tfplan
-
-    # Set up kubectl to interact with the AKS cluster
-    - name: Set up kubectl
-      uses: azure/setup-kubectl@v1
-      with:
-        kubeconfig: ${{ secrets.AKS_KUBECONFIG }}
-
-    # Deploy the helloworld pod and service
-    - name: Deploy Helloworld Pods and Service
-      run: |
-        kubectl apply -f app/helloworld.yaml
