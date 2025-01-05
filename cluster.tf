@@ -5,7 +5,7 @@ resource "random_pet" "prefix" {}
 
 provider "azurerm" {
   features {}
-  client_id       = var.app
+  client_id       = var.appid
   client_secret   = var.password
   subscription_id = var.subscription_id
   tenant_id       = var.tenant_id
