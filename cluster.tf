@@ -9,6 +9,7 @@ provider "azurerm" {
   tenant_id       = var.tenant_id
   client_id       = var.appId
   client_secret   = var.password
+  skip_provider_registration = true
 }
 
 resource "azurerm_resource_group" "default" {
