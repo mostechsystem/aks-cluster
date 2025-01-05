@@ -35,12 +35,18 @@ jobs:
       run: |
         set -e
         # Check for resource group
-        az group show --name athena-aks-cluster-rg --subscription fb30b7d9-ce3c-4a8e-b04e-340796eeec0d > /dev/null 2>&1
-        RESOURCE_GROUP_EXISTS=$?
-        
+        if az group show --name athena-aks-cluster-rg --subscription fb30b7d9-ce3c-4a8e-b04e-340796eeec0d > /dev/null 2>&1; then
+          RESOURCE_GROUP_EXISTS=0
+        else
+          RESOURCE_GROUP_EXISTS=1
+        fi
+
         # Check for AKS cluster
-        az aks show --resource-group athena-aks-cluster-rg --name athena-aks-cluster-test --subscription fb30b7d9-ce3c-4a8e-b04e-340796eeec0d > /dev/null 2>&1
-        CLUSTER_EXISTS=$?
+        if az aks show --resource-group athena-aks-cluster-rg --name athena-aks-cluster-test --subscription fb30b7d9-ce3c-4a8e-b04e-340796eeec0d > /dev/null 2>&1; then
+          CLUSTER_EXISTS=0
+        else
+          CLUSTER_EXISTS=1
+        fi
 
         # Output results
         if [ $RESOURCE_GROUP_EXISTS -eq 0 ] && [ $CLUSTER_EXISTS -eq 0 ]; then
@@ -52,10 +58,12 @@ jobs:
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       run: terraform init
+      if: env.resources_exist == 'false'
 
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
       run: terraform fmt -check
+      if: env.resources_exist == 'false'
 
     # Generates an execution plan for Terraform
     - name: Terraform Plan
@@ -87,4 +95,9 @@ jobs:
     # Deploy the helloworld pod and service
     - name: Deploy Helloworld Pods and Service
       run: |
+        if [ "${{ env.resources_exist }}" == "true" ]; then
+          echo "Resources already exist. Proceeding with Helloworld deployment."
+        else
+          echo "New resources created. Proceeding with Helloworld deployment."
+        fi
         kubectl apply -f app/helloworld.yaml
