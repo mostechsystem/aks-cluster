@@ -1,8 +1,6 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
-resource "random_pet" "prefix" {}
-
 provider "azurerm" {
   features {}
   subscription_id            = var.subscription_id
@@ -12,21 +10,21 @@ provider "azurerm" {
   skip_provider_registration = true
 }
 
-resource "azurerm_resource_group" "default" {
-  name     = "${random_pet.prefix.id}-rg"
-  location = "West Europe"
+resource "azurerm_resource_group" "aks_cluster-rg" {
+  name     = var.resource_group_name
+  location = var.location
 
   tags = {
     environment = "Demo"
   }
 }
 
-resource "azurerm_kubernetes_cluster" "default" {
-  name                = "${random_pet.prefix.id}-aks"
-  location            = azurerm_resource_group.default.location
-  resource_group_name = azurerm_resource_group.default.name
-  dns_prefix          = "${random_pet.prefix.id}-k8s"
-  kubernetes_version  = "1.28.10"
+resource "azurerm_kubernetes_cluster" "aks_cluster" {
+  name                = var.cluster_name
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  dns_prefix          = var.dns_prefix
+  kubernetes_version  = var.aks_version
 
   default_node_pool {
     name            = "default"
