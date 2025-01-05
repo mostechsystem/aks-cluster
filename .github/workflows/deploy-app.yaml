@@ -33,8 +33,14 @@ jobs:
         with:
           kubeconfig: ${{ secrets.AKS_KUBECONFIG }}
 
+      # Set Kubernetes context to the specific AKS cluster
+      - name: Set Kubernetes Context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: ${{ secrets.AZURE_RESOURCE_GROUP }}
+          cluster-name: ${{ secrets.AZURE_CLUSTER_NAME }}
+
       # Deploy the Helloworld Pods and Service
       - name: Deploy Helloworld Pods and Service
         run: |
           kubectl apply --validate=false -f app/helloworld.yaml
-
